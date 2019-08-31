@@ -37,7 +37,7 @@ export default {
       if (value) {
         callBack() // 如果value为true直接通过
       } else {
-        callBack(new Error('您必须无条件同意，听见没有！！！'))
+        callBack(new Error('您必须无条件同意，听见没有！？'))
       }
     }
     return {
