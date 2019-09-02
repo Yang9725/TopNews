@@ -37,7 +37,7 @@ export default {
       if (value) {
         callBack() // 如果value为true直接通过
       } else {
-        callBack(new Error('您必须无条件同意，听见没有！？'))
+        callBack(new Error('您必须无条件同意被坑'))
       }
     }
     return {
@@ -85,14 +85,9 @@ export default {
           }).then(result => {
             // console.log(result.data.data.token)
             // 放到前端的缓存中
-            window.localStorage.setItem('user-token', result.data.data.token)
+            window.localStorage.setItem('user-token', result.data.token)
             // 编程式导航
             this.$router.push('/') // 登录成功 跳转到home页
-          }).catch(() => {
-            this.$message({
-              message: '手机号或者验证码错误',
-              type: 'warning'
-            })
           })
         }
       })
