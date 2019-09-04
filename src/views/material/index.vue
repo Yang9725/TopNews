@@ -3,6 +3,10 @@
     <bread-crumb slot="header">
       <template slot="title">素材管理</template>
     </bread-crumb>
+    <!-- 上传组件 -->
+    <el-upload :show-file-list="false" :http-request="uploadImg" action="" class='upload-btn'>
+      <el-button size='small' type='primary'>上传图片</el-button>
+    </el-upload>
     <el-tabs v-model="activeName" @tab-click="changeTab">
       <el-tab-pane label="全部素材" name="all">
         <!-- 全部素材的内容 -->
@@ -10,8 +14,8 @@
           <el-card class="img-card" v-for="item in list" :key="item.id">
             <img :src="item.url" alt />
             <el-row class="operate" type="flex" align="middle" justify="space-around">
-              <i :style="{color: item.is_collected ? 'red' : '' }" class="el-icon-star-on"></i>
-              <i class="el-icon-delete-solid"></i>
+              <i @click="collectOrCancel(item)" :style="{color: item.is_collected ? 'red' : '' }" class="el-icon-star-on"></i>
+              <i @click="delImg(item)" class="el-icon-delete-solid"></i>
             </el-row>
           </el-card>
         </div>
@@ -36,48 +40,96 @@
 
 <script>
 export default {
-    data(){
-        return{
-            activeName : 'all',
-            list:[],
-            page:{
-                page :1,
-                pageSize: 10,
-                total : 0
-            }
-        }
-    },
-    methods :{
-        changePage(newPage){
-            this.page.page = newPage
-            this.getMaterial()
-        },
-    chageTab(){
-        this.page.page = 1
-        this.getMaterial()
-    },
-    getMaterial(){
-        this.$axios({
-            url : '/user/images',
-            params :{
-                page : this.page.page,
-                per_page:this.page.pageSize,
-                collect:this.activeName === 'collect'
-            }
-        }).then(result =>{
-            this.list = result.data.results
-            this.page.total = result.data.total_count
-        })
+  data () {
+    return {
+      activeName: 'all',
+      list: [],
+      page: {
+        page: 1,
+        pageSize: 10,
+        total: 0
       }
-    },
-    created(){
-        this.getMaterial()
     }
+  },
+  methods: {
+    // 选择完图片之后执行
+    uploadImg (params) {
+      // formdata类型
+      let obj = new FormData()
+      obj.append('image', params.file)
+      this.$axios({
+        url: '/user/images', // 同样的地址 不同的类型
+        method: 'post',
+        data: obj
+      }).then(() => {
+        this.getMaterial() // 重新加载
+      })
+    },
+    // 收藏或者取消收藏
+    collectOrCancel (item) {
+      let mess = item.is_collected ? '取消' : ''
+      this.$confirm(`您确定要${mess}收藏这张图片?`, '提示').then(() => {
+        // 确定收藏或者取消收藏
+        this.$axios({
+          url: `/user/images/${item.id}`,
+          method: 'put',
+          data: { collect: !item.is_collected } // 取相反
+        }).then(() => {
+          this.getMaterial() // 重新加载
+        })
+      })
+    },
+    delImg (item) {
+      this.$confirm('您确定要删除此图片吗?', '提示').then(() => {
+        // 确定要删除
+        this.$axios({
+          url: `/user/images/${item.id}`,
+          method: 'delete'
+        }).then(() => {
+          this.getMaterial() // 重新加载
+        })
+      })
+    },
+    changePage (newPage) {
+      this.page.page = newPage
+      this.getMaterial() // 请求最新的数据
+    },
+    //   切换页签
+    changeTab () {
+      // this.activeName是最新的页签
+      // 加载不同类型的数据
+      // all => 所有的数据
+      // collect => 去加载收藏数据
+      this.page.page = 1
+      this.getMaterial()
+    },
+    getMaterial () {
+      this.$axios({
+        url: '/user/images',
+        params: {
+          page: this.page.page, // 默认第一次是第一页
+          per_page: this.page.pageSize, // 默认pageSize 10条
+          collect: this.activeName === 'collect' // collect为false就是查全部数据 collect 为true的话 是查询收藏数据
+        }
+      }).then(result => {
+        this.list = result.data.results // 接收数据
+        this.page.total = result.data.total_count // 将图片总数赋值给总页码
+      })
+    }
+  },
+  created () {
+    this.getMaterial()
+  }
 }
 </script>
 
-<style lang="less" scoped>
+<style lang='less' scoped>
 .material {
+  .upload-btn {
+    position: absolute;
+    right:10px;
+    margin-top: -10px;
+  }
   .card-list {
     display: flex;
     flex-wrap: wrap;

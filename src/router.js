@@ -31,8 +31,12 @@ export default new Router({
       {
         path: 'material',
         component: () => import('./views/material')
-      }
-      ]
+      },
+      {
+        // 内容管理
+        path: 'articles',
+        component: () => import('./views/articles')
+      }]
     }
     // {
     //   path: '/about',
