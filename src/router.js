@@ -36,11 +36,18 @@ export default new Router({
         // 内容管理
         path: 'articles',
         component: () => import('./views/articles')
-      },{
-        //发布文章
-        path: 'publish',
+      },
+      {
+        // 发布文章
+        path: 'publish', // 定义动态路由参数
         component: () => import('./views/publish')
-      }]
+      },
+      {
+        // 修改文章
+        path: 'publish/:articleId', // 定义动态路由参数
+        component: () => import('./views/publish')
+      }
+      ]
     }
     // {
     //   path: '/about',

@@ -5,38 +5,39 @@
     </bread-crumb>
     <!-- 搜索工具栏 -->
     <el-form style="margin-left:40px">
-      <el-form-item label='文章状态:'>
-          <el-radio-group>
-              <el-radio>全部</el-radio>
-              <el-radio>草稿</el-radio>
-              <el-radio>待审核</el-radio>
-              <el-radio>审核通过</el-radio>
-              <el-radio>审核失败</el-radio>
-          </el-radio-group>
+      <el-form-item label="文章状态:">
+        <!-- 文章状态，0-草稿，1-待审核，2-审核通过，3-审核失败，4-已删除，不传为全部 -->
+        <el-radio-group @change="changeCondition" v-model="searchForm.status">
+          <el-radio :label="5">全部</el-radio>
+          <el-radio :label="0">草稿</el-radio>
+          <el-radio :label="1">待审核</el-radio>
+          <el-radio :label="2">审核通过</el-radio>
+          <el-radio :label="3">审核失败</el-radio>
+        </el-radio-group>
       </el-form-item>
       <el-form-item label="频道列表:">
-          <el-select></el-select>
+        <el-select @change="changeCondition" v-model="searchForm.channel_id">
+          <el-option v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="时间选择:">
-          <el-date-picker
-            @change="changeCondition"
-            value-format="yyy-MM-dd"
-            v-model="searchForm.dateRange"
-            type="daterange"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期">
-         </el-date-picker>
+        <el-date-picker
+          @change="changeCondition"
+          value-format="yyyy-MM-dd"
+          v-model="searchForm.dateRange"
+          type="daterange"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
     </el-form>
     <!-- 内容页面结构 -->
-    <div class='total-info'>
-        共找到{{page.total}}条符合条件的内容
-    </div>
-    <div class='article-list'>
-        <!-- 循环项 -->
-        <div class='article-item' v-for="(item,index) in list" :key="index">
-            <!-- 左侧内容 -->
-           <div class="left">
+    <div class="total-info">共找到{{page.total}}条符合条件的内容</div>
+    <div class="article-list">
+      <!-- 循环项 -->
+      <div class="article-item" v-for="(item,index) in list" :key="index">
+        <!-- 左侧内容 -->
+        <div class="left">
           <img :src="item.cover.images.length ? item.cover.images[0] : defaultImg" alt />
           <div class="info">
             <span class="title">{{item.title}}</span>
@@ -44,18 +45,19 @@
             <span class="date">{{item.pubdate}}</span>
           </div>
         </div>
-            <!-- 右侧内容 -->
-           <div class="right">
-          <span>
+        <!-- 右侧内容 -->
+        <div class="right">
+          <!-- 给修改按钮注册一个事件 -->
+          <span @click="modifyItem(item)">
             <i class="el-icon-edit"></i>修改
           </span>
           <span @click="delItem(item)">
             <i class="el-icon-delete"></i>删除
           </span>
         </div>
-        </div>
+      </div>
     </div>
-     <el-row type="flex" justify="center" style="margin:10px 0">
+    <el-row type="flex" justify="center" style="margin:10px 0">
       <el-pagination @current-change="changePage" :current-page="page.page" :page-size="page.pageSize" :total="page.total" background layout="prev, pager, next" ></el-pagination>
     </el-row>
   </el-card>
@@ -63,7 +65,7 @@
 
 <script>
 export default {
-   data () {
+  data () {
     return {
       list: [], // 定义一个空数组
       defaultImg: require('../../assets/img/default-cover.jpg'), // base64字符串
@@ -82,6 +84,11 @@ export default {
     }
   },
   methods: {
+    // 修改数据
+    modifyItem (item) {
+      // 跳转到发布页面
+      this.$router.push(`/home/publish/${item.id.toString()}`)
+    },
     //  删除数据
     delItem (item) {
       this.$confirm('您是否要删除此文章?', '提示').then(() => {

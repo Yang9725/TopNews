@@ -9,15 +9,20 @@
               <el-input v-model="formData.title" style='width:400px'></el-input>
           </el-form-item>
           <el-form-item prop="content" label="内容">
-              <el-input  v-model="formData.content"  type="textarea" :rows="4"></el-input>
+              <quill-editor  v-model="formData.content" style='height:400px;width:800px' ></quill-editor>
           </el-form-item>
-          <el-form-item label="封面">
-              <el-radio-group v-model="formData.cover.type">
+          <el-form-item label="封面" style="margin-top:120px">
+            <!-- 监听radio的改变事件 -->
+              <el-radio-group @change="changeCoverType" v-model="formData.cover.type">
                   <el-radio :label="1">单图</el-radio>
                   <el-radio :label="3">三图</el-radio>
                   <el-radio :label="0">无图</el-radio>
                   <el-radio :label="-1">自动</el-radio>
               </el-radio-group>
+          </el-form-item>
+          <el-form-item>
+            <!-- 封面图片组件 -->
+            <cover-image :images="formData.cover.images"></cover-image>
           </el-form-item>
           <el-form-item prop="channel_id" label="频道">
               <el-select  v-model="formData.channel_id">
@@ -26,8 +31,8 @@
               </el-select>
           </el-form-item>
           <el-form-item>
-              <el-button @click="publish" type='primary'>发表文章</el-button>
-              <el-button>存入草稿</el-button>
+              <el-button @click="publish(false)" type='primary'>发表文章</el-button>
+              <el-button @click="publish(true)">存入草稿</el-button>
           </el-form-item>
       </el-form>
   </el-card>
@@ -65,6 +70,16 @@ export default {
     }
   },
   methods: {
+    // 切换封面类型  根据当前类型决定 images结构
+    changeCoverType () {
+      if (this.formData.cover.type === 1) {
+        this.formData.cover.images = [''] // 有一张封面 待选择
+      } else if (this.formData.cover.type === 3) {
+        this.formData.cover.images = ['', '', ''] // 有三张封面 待选择
+      } else {
+        this.formData.cover.images = [] // 自动或者无图 没有内容
+      }
+    },
     getChannels () {
       this.$axios({
         url: '/channels'
@@ -73,13 +88,15 @@ export default {
       })
     },
     //  发布文章
-    publish () {
+    publish (draft) {
       this.$refs.publishForm.validate((isOK) => {
         if (isOK) {
+          // 只有校验成功了 才去管是新增还是修改
+          let { articleId } = this.$route.params // 获取id
           this.$axios({
-            url: '/articles',
-            method: 'post',
-            params: { draft: false }, // draft 为true时 就是草稿
+            url: articleId ? `/articles/${articleId}` : '/articles',
+            method: articleId ? 'put' : 'post',
+            params: { draft }, // draft 为true时 就是草稿
             data: this.formData
           }).then(() => {
             //   编程式导航
@@ -87,10 +104,23 @@ export default {
           })
         }
       })
+    },
+    // 通过id获取文章详情
+    getArticleById (articleId) {
+      this.$axios({
+        url: `/articles/${articleId}`
+      }).then(result => {
+        this.formData = result.data
+      })
     }
   },
   created () {
-    this.getChannels()
+    this.getChannels() // 获取频道
+    let { articleId } = this.$route.params // 获取id
+    if (articleId) {
+      // 如果存在 说明是修改文章 通过id 获取当前的文章数据
+      this.getArticleById(articleId)
+    }
   }
 }
 </script>
