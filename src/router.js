@@ -3,10 +3,15 @@ import Router from 'vue-router'
 import Home from './views/home'
 import Login from './views/login'
 import Main from './views/home/main'
+import NotFound from './views/404'
 Vue.use(Router)
 
 export default new Router({
   routes: [
+    {
+      path: '*', // 匹配所有找不到家的孩子
+      component: NotFound
+    },
     {
       path: '/login',
       component: Login
@@ -46,10 +51,26 @@ export default new Router({
         // 修改文章
         path: 'publish/:articleId', // 定义动态路由参数
         component: () => import('./views/publish')
-      }, {
+      },
+      {
         // 账户信息
         path: 'account',
         component: () => import('./views/account')
+      },
+      {
+        // 账户信息
+        path: 'fansdata',
+        component: () => import('./views/fans/fansdata')
+      },
+      {
+        // 异步方案
+        path: 'async',
+        component: () => import('./views/async')
+      },
+      {
+        // 生命周期
+        path: 'live',
+        component: () => import('./views/live')
       }
       ]
     }
